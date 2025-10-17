@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💧 喝水澆花挑戰 🌸 (單檔案)</title>
+    
+    <style>
+        /* ----------------------------------- */
+        /* 核心樣式 Reset & 背景 */
+        /* ----------------------------------- */
+        body {
+            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f7ff; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* ----------------------------------- */
+        /* 主要容器 (Container) */
+        /* ----------------------------------- */
+        .container {
+            background: linear-gradient(145deg, #ffffff, #e6f0f7); 
+            padding: 35px 45px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15), 
+                        0 0 0 10px rgba(0, 123, 255, 0.05); 
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            transition: transform 0.3s ease;
+        }
+
+        h1 {
+            color: #007bff; 
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+
+        /* ----------------------------------- */
+        /* 遊戲化視覺區 (Watering Game) */
+        /* ----------------------------------- */
+        .watering-game-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end; 
+            margin: 30px 0;
+            height: 180px; 
+        }
+
+        /* 1. 水桶區樣式 */
+        .water-bucket-wrapper {
+            position: relative;
+            width: 80px;
+            height: 150px;
+            background-color: transparent;
+            border-radius: 5px 5px 20px 20px;
+            overflow: hidden;
+        }
+
+        .bucket-outline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 5px solid #a0a0a0; 
+            border-top: 10px solid #888;
+            border-radius: 5px 5px 20px 20px;
+            box-sizing: border-box;
+        }
+
+        .water-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%; 
+            background: linear-gradient(to top, #007bff, #4dc3ff); 
+            transition: height 0.8s ease-out; 
+            border-radius: 0 0 15px 15px;
+        }
+
+        /* 2. 花朵區樣式 */
+        .flower-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            width: 150px;
+            height: 100%;
+        }
+
+        /* 花園容器樣式：讓多朵花可以排列 */
+        .flower-garden {
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center;
+            align-content: flex-start;
+            width: 100%;
+            height: 150px; 
+            overflow-y: auto; 
+            padding: 5px;
+            border: 1px dashed #c4d7e9; 
+            background-color: #f7fff7; 
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* 花朵單元樣式 */
+        .flower-unit {
+            font-size: 2em; 
+            margin: 3px;
+            cursor: default;
+            line-height: 1;
+        }
+
+        #gardenMessage {
+            font-size: 0.9em;
+            color: #999;
+            padding-top: 50px;
+        }
+
+        #waterFlowerBtn {
+            padding: 10px 15px;
+            background-color: #28a745; 
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        #waterFlowerBtn:hover:not(:disabled) {
+            background-color: #1e7e34;
+        }
+
+        #waterFlowerBtn:disabled {
+            background-color: #cccccc; 
+            cursor: not-allowed;
+        }
+
+
+        /* ----------------------------------- */
+        /* 數據顯示與輸入區 (優化樣式) */
+        /* ----------------------------------- */
+        .goal-text {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        #currentIntakeDisplay {
+            color: #00a040; 
+            font-size: 2.2em; 
+            margin: 15px 0 20px 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding: 15px 0;
+            background-color: #e6f7ff;
+            border-radius: 12px;
+            border: 1px solid #cceeff;
+        }
+
+        .summary-stats p {
+            font-size: 0.85em;
+            color: #666;
+            margin: 0;
+            line-height: 1.2;
+            padding: 0 5px;
+        }
+
+        .summary-stats span {
+            display: block;
+            font-weight: bold;
+            color: #0056b3; 
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+
+        .input-area {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background-color: #f8fcfd;
+            border-radius: 12px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-area label {
+            font-weight: 500;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        #waterAmount {
+            padding: 12px;
+            border: 1px solid #cceeff;
+            border-radius: 10px;
+            font-size: 1.1em;
+            width: 80px;
+            text-align: center;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        #waterAmount:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+
+        #addWaterBtn {
+            padding: 12px 20px;
+            background: linear-gradient(180deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        #addWaterBtn:hover {
+            background: linear-gradient(180deg, #0056b3, #004494);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 123, 255, 0.5);
+        }
+
+        #undoBtn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            background-color: #adb5bd; 
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        #undoBtn:hover {
+            background-color: #6c757d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .reset-info {
+            font-size: 0.75em;
+            color: #999;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>💧 喝水澆花挑戰 🌸</h1>
+        
+        <p class="goal-text">每日目標：<span id="dailyGoal">2000</span> ml</p>
+        
+        <div class="watering-game-container">
+            <div class="water-bucket-wrapper">
+                <div id="waterLevel" class="water-level"></div>
+                <div class="bucket-outline"></div>
+            </div>
+            
+            <div class="flower-area">
+                <div id="flowerGarden" class="flower-garden">
+                    </div>
+                <button id="waterFlowerBtn" disabled title="水桶水量不足">💧 澆花</button>
+            </div>
+        </div>
+
+        <hr>
+
+        <h2 id="currentIntakeDisplay">今日總水量：0 ml</h2>
+
+        <div class="summary-stats">
+            <p>本週總量：<span id="weeklyIntake">0</span> ml</p>
+            <p>本月總量：<span id="monthlyIntake">0</span> ml</p>
+            <p>年度總量：<span id="yearlyIntake">0</span> ml</p>
+        </div>
+        
+        <hr>
+
+        <div class="input-area">
+            <label for="waterAmount">新增喝水量 (ml)：</label>
+            <input type="number" id="waterAmount" value="250" min="50" placeholder="例如：250">
+            
+            <button id="addWaterBtn">記錄</button>
+
+            <button id="undoBtn" class="utility-btn" title="撤銷上一筆記錄">↶</button> 
+        </div>
+
+        <p class="reset-info">
+            * 您的所有喝水記錄與花朵狀態會自動保存在瀏覽器中。
+        </p>
+
+    </div>
+
+    <script>
+        // --- 核心變數設定 ---
+        const DAILY_GOAL = 2000;
+        const WATER_NEEDED_FOR_FLOWER = 1000; // 澆花所需的水量 (ml)
+        const FINAL_FLOWER_ICON = "🌸"; // 每次澆花後長成的花朵圖標
+
+        const STORAGE_KEY_RECORDS = 'waterRecords';
+        const STORAGE_KEY_BUCKET = 'bucketAmount';
+        const STORAGE_KEY_GARDEN = 'flowerGarden'; // 儲存已長成的花朵陣列
+
+        // 獲取 DOM 元素
+        const amountInput = document.getElementById('waterAmount');
+        const addButton = document.getElementById('addWaterBtn');
+        const undoButton = document.getElementById('undoBtn');
+        const intakeDisplay = document.getElementById('currentIntakeDisplay');
+        const weeklyIntakeDisplay = document.getElementById('weeklyIntake');
+        const monthlyIntakeDisplay = document.getElementById('monthlyIntake');
+        const yearlyIntakeDisplay = document.getElementById('yearlyIntake');
+        // 遊戲化元素
+        const waterLevelDisplay = document.getElementById('waterLevel');
+        const waterFlowerBtn = document.getElementById('waterFlowerBtn');
+        const flowerGardenDisplay = document.getElementById('flowerGarden'); 
+
+        let waterRecords = [];
+        let bucketAmount = 0; // 水桶累積水量
+        let flowerGarden = []; // 已長成的花朵陣列
+
+        // 新增旗標：用來限制只能撤銷最近一筆記錄 (防止連續撤銷)
+        let canUndo = false; 
+
+        // --- 工具函式 ---
+
+        /**
+         * 載入所有本地儲存的數據 (記錄, 水桶, 花朵)
+         */
+        function loadAllData() {
+            const savedRecords = localStorage.getItem(STORAGE_KEY_RECORDS);
+            if (savedRecords) {
+                waterRecords = JSON.parse(savedRecords);
+            } else {
+                waterRecords = [];
+            }
+            
+            // 確保 bucketAmount 是數字
+            bucketAmount = parseInt(localStorage.getItem(STORAGE_KEY_BUCKET)) || 0;
+            
+            const savedGarden = localStorage.getItem(STORAGE_KEY_GARDEN);
+            if (savedGarden) {
+                flowerGarden = JSON.parse(savedGarden);
+            } else {
+                flowerGarden = [];
+            }
+
+            // 載入時，預設不能撤銷，直到有新的輸入
+            canUndo = false; 
+        }
+
+        /**
+         * 儲存水桶和花朵狀態
+         */
+        function saveGameState() {
+            localStorage.setItem(STORAGE_KEY_BUCKET, bucketAmount);
+            localStorage.setItem(STORAGE_KEY_GARDEN, JSON.stringify(flowerGarden));
+        }
+
+        /**
+         * 計算特定時間範圍的總喝水量
+         */
+        function calculateIntake(startDate, endDate) {
+            const startTimestamp = startDate.getTime();
+            const endTimestamp = endDate.getTime();
+
+            let totalAmount = 0;
+            
+            waterRecords.forEach(record => {
+                if (record.timestamp >= startTimestamp && record.timestamp <= endTimestamp) {
+                    totalAmount += record.amount;
+                }
+            });
+            
+            return totalAmount;
+        }
+
+        // --- 核心更新與互動函式 ---
+
+        /**
+         * 渲染花朵列表到網頁上
+         */
+        function renderGarden() {
+            flowerGardenDisplay.innerHTML = ''; 
+
+            if (flowerGarden.length === 0) {
+                flowerGardenDisplay.innerHTML = '<p id="gardenMessage">你的花園還空空的，快來澆水吧！</p>';
+                return;
+            }
+
+            // 遍歷花朵陣列，為每個花朵創建一個元素
+            flowerGarden.forEach(() => {
+                const flowerElement = document.createElement('span');
+                flowerElement.className = 'flower-unit';
+                flowerElement.textContent = FINAL_FLOWER_ICON; 
+                flowerGardenDisplay.appendChild(flowerElement);
+            });
+        }
+
+
+        /**
+         * 更新遊戲化介面 (水桶水位和澆花按鈕狀態)
+         */
+        function updateGameDisplay() {
+            // 1. 更新水桶水位
+            const maxCapacity = WATER_NEEDED_FOR_FLOWER * 2; 
+            let levelPercentage = Math.min((bucketAmount / maxCapacity) * 100, 100);
+            
+            waterLevelDisplay.style.height = `${levelPercentage}%`;
+
+            // 2. 更新澆花按鈕狀態 (水量剛好 1000ml 時，按鈕也會啟用)
+            if (bucketAmount >= WATER_NEEDED_FOR_FLOWER) {
+                waterFlowerBtn.disabled = false;
+                waterFlowerBtn.title = `點擊澆花 (${WATER_NEEDED_FOR_FLOWER} ml) - 將長成一朵新花！`;
+            } else {
+                waterFlowerBtn.disabled = true;
+                const missing = WATER_NEEDED_FOR_FLOWER - bucketAmount;
+                waterFlowerBtn.title = `還需要 ${missing} ml 才能長出一朵新花`;
+            }
+
+            // 3. 渲染花園
+            renderGarden();
+        }
+
+        /**
+         * 處理「記錄」按鈕點擊事件
+         */
+        function handleAddWater() {
+            const amountToAdd = parseInt(amountInput.value);
+
+            if (isNaN(amountToAdd) || amountToAdd <= 0) {
+                alert("請輸入有效的喝水量！");
+                return;
+            }
+            
+            const newRecord = { timestamp: new Date().getTime(), amount: amountToAdd };
+            waterRecords.push(newRecord);
+            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(waterRecords));
+
+            bucketAmount += amountToAdd;
+            saveGameState(); 
+
+            // 新增邏輯: 允許撤銷 (因為有新的輸入)
+            canUndo = true; 
+            
+            updateDisplay();
+            updateGameDisplay();
+
+            amountInput.value = '250';
+        }
+
+        /**
+         * 處理「撤銷最後一筆記錄」按鈕
+         */
+        function handleUndo() {
+            // 檢查是否允許撤銷 (限制連續撤銷)
+            if (!canUndo) {
+                alert("只能撤銷上一次單筆喝水記錄。請先記錄新的喝水量才能再次撤銷。");
+                return;
+            }
+            
+            if (waterRecords.length === 0) {
+                alert("沒有任何記錄可以撤銷！");
+                return;
+            }
+
+            const lastRecord = waterRecords.pop();
+            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(waterRecords));
+
+            bucketAmount -= lastRecord.amount;
+            if (bucketAmount < 0) bucketAmount = 0; 
+            saveGameState();
+            
+            // 新增邏輯: 撤銷操作已執行，再次禁止撤銷，直到有新的輸入
+            canUndo = false; 
+
+            updateDisplay();
+            updateGameDisplay();
+        }
+
+        /**
+         * 處理「澆花」按鈕點擊事件
+         */
+        function handleWaterFlower() {
+            if (bucketAmount < WATER_NEEDED_FOR_FLOWER) {
+                alert("水桶水量不足，請繼續喝水！");
+                return;
+            }
+
+            // 1. 減少水桶水量
+            bucketAmount -= WATER_NEEDED_FOR_FLOWER;
+
+            // 2. 在花園陣列中新增一朵花
+            const newFlower = {
+                date: new Date().toDateString(),
+                timestamp: new Date().getTime()
+            };
+            flowerGarden.push(newFlower);
+            
+            // 3. 儲存遊戲狀態
+            saveGameState();
+
+            // 4. 更新所有顯示
+            updateDisplay();
+            updateGameDisplay();
+
+            alert("澆花成功！恭喜您長成了一朵新的花！🌸");
+        }
+
+
+        // --- 核心數據計算函式 ---
+
+        function updateDisplay() {
+            const now = new Date();
+            
+            // 每日計算
+            const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const dailyIntake = calculateIntake(dayStart, now);
+            intakeDisplay.textContent = `今日總水量：${dailyIntake} ml`;
+            
+            // 每週計算
+            const dayOfWeek = now.getDay();
+            const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek); 
+            weeklyIntakeDisplay.textContent = calculateIntake(weekStart, now);
+
+            // 每月計算
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            monthlyIntakeDisplay.textContent = calculateIntake(monthStart, now);
+
+            // 每年計算
+            const yearStart = new Date(now.getFullYear(), 0, 1);
+            yearlyIntakeDisplay.textContent = calculateIntake(yearStart, now);
+        }
+
+
+        // --- 初始化和事件監聽 ---
+
+        // 1. 啟動時載入所有數據
+        loadAllData();
+
+        // 2. 啟動時更新所有顯示畫面
+        updateDisplay();
+        updateGameDisplay(); 
+
+        // 3. 監聽按鈕點擊
+        addButton.addEventListener('click', handleAddWater);
+        undoButton.addEventListener('click', handleUndo);
+        waterFlowerBtn.addEventListener('click', handleWaterFlower);
+
+        // 4. 允許按 Enter 鍵記錄
+        amountInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                handleAddWater();
+            }
+        });
+    </script>
+</body>
+</html>
